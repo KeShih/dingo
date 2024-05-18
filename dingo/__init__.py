@@ -36,6 +36,9 @@ try:
 except ImportError as e:
     pass
 
+# from dingo.optlang_based_implementations import opt_fba
+from dingo.pulp_based_impl import fba as opt_fba
+
 from volestipy import HPolytope
 
 
