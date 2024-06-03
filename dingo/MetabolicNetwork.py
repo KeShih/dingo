@@ -11,10 +11,13 @@ import sys
 from typing import Dict
 import cobra
 from dingo.loading_models import read_json_file, read_mat_file, read_sbml_file, parse_cobra_model
-from dingo.fva import slow_fva
+# from dingo.fva import slow_fva
 # from dingo.fba import slow_fba
 # from dingo.optlang_based_implementations import opt_fba as slow_fba
 from dingo.pulp_based_impl import fba as slow_fba
+from dingo.pulp_based_impl import fva as slow_fva
+# from dingo.gurobi_based_implementations import fast_fba as slow_fba
+# from dingo.gurobi_based_implementations import fast_fva as slow_fva
 
 try:
     import gurobipy

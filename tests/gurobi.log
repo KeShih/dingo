@@ -1,25 +1,5 @@
 
-Gurobi 11.0.1 (linux64, gurobi_cl) logging started Sat May 18 22:28:12 2024
-
-Set parameter LogFile to value "gurobi.log"
-Using license file /home/keshi/gurobi.lic
-
-Gurobi 11.0.1 (linux64, gurobi_cl) logging started Sat May 18 22:39:06 2024
-
-Set parameter LogFile to value "gurobi.log"
-Using license file /home/keshi/gurobi.lic
-
-Gurobi 11.0.1 (linux64, gurobi_cl) logging started Sat May 18 22:39:10 2024
-
-Set parameter LogFile to value "gurobi.log"
-Using license file /home/keshi/gurobi.lic
-
-Gurobi 11.0.1 (linux64, gurobi_cl) logging started Sat May 18 22:39:21 2024
-
-Set parameter LogFile to value "gurobi.log"
-Using license file /home/keshi/gurobi.lic
-
-Gurobi 11.0.1 (linux64, gurobi_cl) logging started Sat May 18 22:40:22 2024
+Gurobi 11.0.1 (linux64, gurobi_cl) logging started Sun Jun  2 19:58:43 2024
 
 Set parameter LogFile to value "gurobi.log"
 Using license file /home/keshi/gurobi.lic

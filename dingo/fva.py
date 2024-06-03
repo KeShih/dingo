@@ -26,6 +26,8 @@ def slow_fva(lb, ub, S, c, opt_percentage=100):
                       percentage of the optimal solution (default is to consider
                       optimal solutions only)
     """
+    
+    print("slow-fvaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
     if lb.size != S.shape[1] or ub.size != S.shape[1]:
         raise Exception(
@@ -105,6 +107,13 @@ def slow_fva(lb, ub, S, c, opt_percentage=100):
         # Make lists of fluxes numpy arrays
         min_fluxes = np.asarray(min_fluxes)
         max_fluxes = np.asarray(max_fluxes)
+
+        print( (
+            min_fluxes,
+            max_fluxes,
+            max_biomass_flux_vector,
+            max_biomass_objective,
+        ))
 
         return (
             min_fluxes,
