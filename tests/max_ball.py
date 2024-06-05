@@ -11,7 +11,8 @@ import os
 import scipy
 import numpy as np
 from dingo import MetabolicNetwork, PolytopeSampler
-from dingo.inner_ball import slow_inner_ball
+# from dingo.inner_ball import slow_inner_ball
+from dingo.pulp_based_impl import inner_ball as slow_inner_ball
 from dingo.scaling import gmscale
 
 

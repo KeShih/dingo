@@ -91,3 +91,4 @@ def opt_fba(lb, ub, S, c):
 
     except AttributeError:
         print("optlang failed.")
+        

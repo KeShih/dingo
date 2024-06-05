@@ -2,11 +2,20 @@ import pulp as pl
 import numpy as np
 import scipy.sparse as sp
 import math
+import time
 
-# solver_name = 'COPT'
+solver_name = "COPT"
 # solver_name = 'GUROBI'
-solver_name = 'HiGHS'
+# solver_name = 'HiGHS'
 # solver_name = 'COIN_CMD'
+
+# def __eq__(self, other):
+#     if isinstance(other, (float, int)):
+#         return pl.LpConstraint(self, pl.const.LpConstraintEQ, rhs=other)
+#     else:
+#         return pl.LpConstraint(self - other, pl.const.LpConstraintEQ)
+
+# pl.LpAffineExpression.__eq__ = __eq__
 
 
 def fba(lb, ub, S, c):
@@ -22,6 +31,8 @@ def fba(lb, ub, S, c):
     c -- the linear objective function, i.e., a n-dimensional vector
     """
 
+    # print("fbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+
     if lb.size != S.shape[1] or ub.size != S.shape[1]:
         raise Exception(
             "The number of reactions must be equal to the number of given flux bounds."
@@ -35,7 +46,7 @@ def fba(lb, ub, S, c):
     n = S.shape[1]
     optimum_value = 0
     optimum_sol = np.zeros(n)
-    
+
     try:
 
         model = pl.LpProblem("FBA", pl.LpMaximize)
@@ -43,11 +54,24 @@ def fba(lb, ub, S, c):
         x = [pl.LpVariable(f"x{i}", lowBound=lb[i], upBound=ub[i]) for i in range(n)]
 
         for i in range(m):
-            model += (pl.lpDot(S[i], x) == 0, f"Mass balance {i}")
+            # model += (pl.lpDot(S[i], x) == 0, f"Mass balance {i}")
+            # model += (pl.lpSum([S[i][j] * x[j] for j in range(n)]) == 0, f"Mass balance {i}")
+            model += (
+                pl.LpAffineExpression(
+                    (x[j], S[i][j]) for j in range(n) if abs(S[i][j]) > 0.01
+                )
+                == 0,
+                f"Mass balance {i}",
+            )
 
-        model += (pl.lpDot(c,x), "Objective function")
-
-        solver = pl.getSolver(solver_name,msg = 0)
+        # model += (pl.lpDot(c,x), "Objective function")
+        # model += (pl.lpSum([c[j] * x[j] for j in range(n)]), "Objective function")
+        model += (
+            pl.LpAffineExpression((x[j], c[j]) for j in range(n) if abs(c[j]) > 0.01),
+            "Objective function",
+        )
+        # model.writeMPS("test.mps")
+        solver = pl.getSolver(solver_name, msg=0)
         model.solve(solver)
 
         status = pl.LpStatus[model.status]
@@ -101,133 +125,180 @@ def fva(lb, ub, S, c, opt_percentage=100):
 
     # Create variables
     x = [pl.LpVariable(f"x{i}", lowBound=lb[i], upBound=ub[i]) for i in range(n)]
-    
+
     # Add the constraints
+    # s = time.time()
     for i in range(m):
-        if(m%2): continue
-        model += pl.lpDot(S[i], x) == 0
+        # model += (pl.lpSum([S[i][j] * x[j] for j in range(n)]) == 0, f"Mass balance {i}")
+        # model += (pl.lpDot(S[i], x) == 0, f"Mass balance {i}")
+        # model += (pl.LpAffineExpression((x[j],S[i][j]) for j in range(n)) == 0, f"Mass balance {i}")
+        model += (
+            pl.LpAffineExpression(
+                (x[j], S[i][j]) for j in range(n) if abs(S[i][j]) > 0.01
+            )
+            == 0,
+            f"Mass balance {i}",
+        )
+    # t = time.time() - s
+    # print("Time to add constraints: ", t)
 
-    model += pl.lpDot(c, x) >= vopt
-
-
-    for i in range(n):
-        model.objective = x[i]
-
-        # Optimize model
-        solver = pl.getSolver(solver_name,msg = 0)
-        model.solve(solver)
-
-        status = pl.LpStatus[model.status]
-
-        # If optimized
-        if status == "Optimal":
-
-            # Get the min objective value
-            min_objective = pl.value(model.objective)
-            min_fluxes.append(min_objective)
-        else:
-            min_fluxes.append(lb[i])
-
-        # Likewise, for the maximum
-        
-        model.objective = -x[i]
-
-        # Optimize model
-        solver = pl.getSolver(solver_name,msg = 0)
-        model.solve(solver)
-
-        status = pl.LpStatus[model.status]
-
-        # Again if optimized
-        if status == "Optimal":
-            # Get the max objective value
-            max_objective = -pl.value(model.objective)
-            max_fluxes.append(max_objective)
-        else:
-            max_fluxes.append(ub[i])
-
-        # Make lists of fluxes numpy arrays
-    min_fluxes = np.asarray(min_fluxes)
-    max_fluxes = np.asarray(max_fluxes)
-
-    # print((
-    #     min_fluxes,
-    #     max_fluxes,
-    #     max_biomass_flux_vector,
-    #     max_biomass_objective,
-    # ))
-
-    return (
-        min_fluxes,
-        max_fluxes,
-        max_biomass_flux_vector,
-        max_biomass_objective,
+    # model += pl.lpDot(c, x) >= vopt
+    # model += (pl.lpSum([c[j] * x[j] for j in range(n)]) >= vopt, "Objective function")
+    model += (
+        pl.LpAffineExpression((x[j], c[j]) for j in range(n) if abs(c[j]) > 0.01)
+        >= vopt
     )
 
-    # except pl.PulpError as e:
-    #     print("Error code " + str(e.errno) + ": " + str(e))
+    try:
+        for i in range(n):
+            model.objective = x[i]
 
-    # except AttributeError:
-    #     print("PuLP failed.")
+            # Optimize model
+            solver = pl.getSolver(solver_name, msg=0)
+            model.solve(solver)
 
+            status = pl.LpStatus[model.status]
 
-# def update_model(model, n, Aeq_sparse, beq, lb, ub, A_sparse, b, objective_function):
-#     """A function to update a gurobi model that solves a linear program
-#     Keyword arguments:
-#     model -- gurobi model
-#     n -- the dimension
-#     Aeq_sparse -- a sparse matrix s.t. Aeq_sparse x = beq
-#     beq -- a vector s.t. Aeq_sparse x = beq
-#     lb -- lower bounds for the variables, i.e., a n-dimensional vector
-#     ub -- upper bounds for the variables, i.e., a n-dimensional vector
-#     A_sparse -- a sparse matrix s.t. A_sparse x <= b
-#     b -- a vector matrix s.t. A_sparse x <= b
-#     objective_function -- the objective function, i.e., a n-dimensional vector
-#     """
-#     model.remove(model.getVars())
-#     model.update()
-#     model.remove(model.getConstrs())
-#     model.update()
-#     x = model.addMVar(
-#         shape=n,
-#         vtype=GRB.CONTINUOUS,
-#         name="x",
-#         lb=lb,
-#         ub=ub,
-#     )
-#     model.update()
-#     model.addMConstr(Aeq_sparse, x, "=", beq, name="c")
-#     model.update()
-#     model.addMConstr(A_sparse, x, "<", b, name="d")
-#     model.update()
-#     model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
-#     model.update()
+            # If optimized
+            if status == "Optimal":
 
-#     return model
+                # Get the min objective value
+                min_objective = pl.value(model.objective)
+                min_fluxes.append(min_objective)
+            else:
+                min_fluxes.append(lb[i])
 
-# def fast_remove_redundant_facets(lb, ub, S, c, opt_percentage=100):
-#     """A function to find and remove the redundant facets and to find
-#     the facets with very small offset and to set them as equalities
+            # Likewise, for the maximum
 
-#     Keyword arguments:
-#     lb -- lower bounds for the fluxes, i.e., a n-dimensional vector
-#     ub -- upper bounds for the fluxes, i.e., a n-dimensional vector
-#     S -- the mxn stoichiometric matrix, s.t. Sv = 0
-#     c -- the objective function to maximize
-#     opt_percentage -- consider solutions that give you at least a certain
-#                       percentage of the optimal solution (default is to consider
-#                       optimal solutions only)
-#     """
-#     pass
+            model.objective = -x[i]
+
+            # Optimize model
+            solver = pl.getSolver(solver_name, msg=0)
+            model.solve(solver)
+
+            status = pl.LpStatus[model.status]
+
+            # Again if optimized
+            if status == "Optimal":
+                # Get the max objective value
+                max_objective = -pl.value(model.objective)
+                max_fluxes.append(max_objective)
+            else:
+                max_fluxes.append(ub[i])
+
+            # Make lists of fluxes numpy arrays
+        min_fluxes = np.asarray(min_fluxes)
+        max_fluxes = np.asarray(max_fluxes)
+
+        return (
+            min_fluxes,
+            max_fluxes,
+            max_biomass_flux_vector,
+            max_biomass_objective,
+        )
+
+    except pl.PulpError as e:
+        print("Error code " + str(e.errno) + ": " + str(e))
+
+    except AttributeError:
+        print("PuLP failed.")
 
 
-# def fast_inner_ball(A, b):
-#     """A Python function to compute the maximum inscribed ball in the given polytope using gurobi LP solver
-#     Returns the optimal solution for the following linear program:
-#     max r, subject to,
-#     a_ix + r||a_i|| <= b, i=1,...,n
+def inner_ball(A, b):
+    """A Python function to compute the maximum inscribed ball in the given polytope using gurobi LP solver
+    Returns the optimal solution for the following linear program:
+    max r, subject to,
+    a_ix + r||a_i|| <= b, i=1,...,n
 
-#     Keyword arguments:
-#     A -- an mxn matrix that contains the normal vectors of the facets of the polytope row-wise
-#     b -- a m-dimensional vector
-#     """
+    Keyword arguments:
+    A -- an mxn matrix that contains the normal vectors of the facets of the polytope row-wise
+    b -- a m-dimensional vector
+    """
+    extra_column = []
+
+    m = A.shape[0]
+    n = A.shape[1]
+
+    for i in range(A.shape[0]):
+        entry = np.linalg.norm(A[i,])
+        extra_column.append(entry)
+
+    column = np.asarray(extra_column)
+    A_expand = np.c_[A, column]
+
+    model = pl.LpProblem("Inner Ball", pl.LpMaximize)
+
+    # Create variables
+    x = [pl.LpVariable(f"x{i}") for i in range(n + 1)]
+
+    for i in range(m):
+        model += (
+            pl.LpAffineExpression((x[j], A_expand[i][j]) for j in range(n + 1)) <= b[i]
+        )
+
+    model += x[n]
+
+    solver = pl.getSolver(solver_name, msg=0)
+    model.solve(solver)
+
+    point = []
+    for i in range(n):
+        point.append(pl.value(x[i]))
+
+    r = pl.value(x[n])
+
+    if r < 0:
+        print(
+            "The radius calculated has negative value. The polytope is infeasible or something went wrong with the solver"
+        )
+    else:
+        return point, r
+    
+    
+def remove_redundant_facets(lb, ub, S, c, opt_percentage=100):
+    """A function to find and remove the redundant facets and to find
+    the facets with very small offset and to set them as equalities
+
+    Keyword arguments:
+    lb -- lower bounds for the fluxes, i.e., a n-dimensional vector
+    ub -- upper bounds for the fluxes, i.e., a n-dimensional vector
+    S -- the mxn stoichiometric matrix, s.t. Sv = 0
+    c -- the objective function to maximize
+    opt_percentage -- consider solutions that give you at least a certain
+                      percentage of the optimal solution (default is to consider
+                      optimal solutions only)
+    """
+    
+    if lb.size != S.shape[1] or ub.size != S.shape[1]:
+        raise Exception(
+            "The number of reactions must be equal to the number of given flux bounds."
+        )
+
+    # declare the tolerance that gurobi works properly (we found it experimentally)
+    redundant_facet_tol = 1e-07
+    tol = 1e-06
+
+    m = S.shape[0]
+    n = S.shape[1]
+    beq = np.zeros(m)
+    Aeq_res = S
+
+    A = np.zeros((2 * n, n), dtype="float")
+    A[0:n] = np.eye(n)
+    A[n:] -= np.eye(n, n, dtype="float")
+
+    b = np.concatenate((ub, -lb), axis=0)
+    b = np.asarray(b, dtype="float")
+    b = np.ascontiguousarray(b, dtype="float")
+
+    # call fba to obtain an optimal solution
+    max_biomass_flux_vector, max_biomass_objective = fba(lb, ub, S, c)
+    val = -np.floor(max_biomass_objective / tol) * tol * opt_percentage / 100
+
+    b_res = []
+    A_res = np.empty((0, n), float)
+    beq_res = np.array(beq)
+    
+    
+
+
