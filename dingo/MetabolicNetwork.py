@@ -12,7 +12,7 @@ import sys
 from typing import Dict
 import cobra
 from dingo.loading_models import read_json_file, read_mat_file, read_sbml_file, parse_cobra_model
-from dingo.pyoptInterface_based_impl import fba,fva,inner_ball,remove_redundant_facets
+from dingo.pyoptinterface_based_impl import fba,fva,inner_ball,remove_redundant_facets
 
 class MetabolicNetwork:
     def __init__(self, tuple_args):

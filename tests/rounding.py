@@ -13,7 +13,7 @@ import os
 import sys
 import numpy as np
 from dingo import MetabolicNetwork, PolytopeSampler
-from dingo.pyoptInterface_based_impl import set_default_solver
+from dingo.pyoptinterface_based_impl import set_default_solver
 
 def test_rounding(self, method_str):
 

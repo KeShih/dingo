@@ -26,7 +26,7 @@ import json
 import scipy.io
 # ----------------------------------------------------------------------------------
 
-from dingo.pyoptInterface_based_impl import inner_ball
+from dingo.pyoptinterface_based_impl import inner_ball
 
 # Set the time
 def get_time_seed():

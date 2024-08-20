@@ -248,7 +248,7 @@ def inner_ball(A, b, solver_name=None):
 
     # And check whether the computed radius is negative
     if r < 0:
-        print(
+        raise Exception(
             "The radius calculated has negative value. The polytope is infeasible or something went wrong with the solver"
         )
     else:
@@ -449,9 +449,6 @@ def remove_redundant_facets(lb, ub, S, c, opt_percentage=100, solver_name=None):
                         else:
                             removed += 1
                             facet_left_removed[i] = True
-
-                    # Reset the inequality
-                    # model_iter.set_variable_attribute(v[i], poi.VariableAttribute.LowerBound, lb[i])
 
                 if (not redundant_facet_left) or (not redundant_facet_right):
                     width = abs(max_objective - min_objective)

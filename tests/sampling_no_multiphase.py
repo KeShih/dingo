@@ -12,7 +12,7 @@ import unittest
 import os
 import sys
 from dingo import MetabolicNetwork, PolytopeSampler
-from dingo.pyoptInterface_based_impl import set_default_solver
+from dingo.pyoptinterface_based_impl import set_default_solver
 
 
 class TestSampling(unittest.TestCase):

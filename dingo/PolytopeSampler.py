@@ -17,7 +17,7 @@ from dingo.utils import (
     get_matrices_of_full_dim_polytope,
 )
 
-from dingo.pyoptInterface_based_impl import fba,fva,inner_ball,remove_redundant_facets
+from dingo.pyoptinterface_based_impl import fba,fva,inner_ball,remove_redundant_facets
 
 from volestipy import HPolytope
 

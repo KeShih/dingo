@@ -27,7 +27,7 @@ from dingo.parser import dingo_args
 from dingo.MetabolicNetwork import MetabolicNetwork
 from dingo.PolytopeSampler import PolytopeSampler
 
-from dingo.pyoptInterface_based_impl import fba, fva, inner_ball, remove_redundant_facets, set_default_solver
+from dingo.pyoptinterface_based_impl import fba, fva, inner_ball, remove_redundant_facets, set_default_solver
 
 from volestipy import HPolytope
 

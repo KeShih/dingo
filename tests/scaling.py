@@ -13,7 +13,7 @@ import scipy
 import numpy as np
 from dingo import MetabolicNetwork
 from dingo.scaling import gmscale
-from dingo.pyoptInterface_based_impl import set_default_solver
+from dingo.pyoptinterface_based_impl import set_default_solver
 
 
 class TestScaling(unittest.TestCase):

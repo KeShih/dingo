@@ -13,7 +13,7 @@ import sys
 import scipy
 import numpy as np
 from dingo import MetabolicNetwork, PolytopeSampler
-from dingo.pyoptInterface_based_impl import inner_ball, set_default_solver
+from dingo.pyoptinterface_based_impl import inner_ball, set_default_solver
 from dingo.scaling import gmscale
 
 
